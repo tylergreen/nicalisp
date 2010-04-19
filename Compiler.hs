@@ -1,9 +1,11 @@
+module Compiler where
+
 import Data.List -- { intersperse }
 
 -- AST
 data Exp = StrConst String 
          | IntConst Integer
-         | Prim Op
+         | Prim String
          | Var String  -- Symbols
          | Lambda [Exp] Exp -- what is the the second exp?  begin or sequence?
          | If Exp Exp Exp
@@ -19,17 +21,17 @@ data Op = Plus | Minus | Product | Equal | Display deriving Show
 
 -- Constants
 javac :: Exp -> String           
-javac (IntConst val) = concat ["IntValue(" , show val , ")"]
+javac (IntConst val) = concat ["new IntValue(" , show val , ")"]
 javac (StrConst s) = concat ["\"", s , "\"" ]
 -- javac (StrConst str) = concat [
 
 -- Primitives 
 
-javac (Prim Plus) = "sum"
-javac (Prim Minus) = "difference"
-javac (Prim Product) = "product"
-javac (Prim Equal) = "numEqual"
-javac (Prim Display) = "display"
+javac (Prim "+") = "sum"
+javac (Prim "-") = "difference"
+javac (Prim "*") = "product"
+javac (Prim "=") = "numEqual"
+javac (Prim "display") = "display"
 javac (Prim _) = error "unhandled primitive"
 
 javac var@(Var _) = if mutable var
@@ -53,6 +55,16 @@ javac (Lambda params body) = unlines [ "new NullProcValue" ++
                                     concatMap wrap_mutable (filter mutable params),
                                     "   return " ++ javac body ++  " ; ",
                                     "} } " ]
+
+javac exp@(Let _ _) = javac $ let_lambda exp
+javac exp@(LetRec [(_,_)] _) = javac $ letrec1_y exp
+
+-- not sure what the name of the "x" var should really be
+javac (Begin exps)
+    = javac $ dummy_bind exps
+      where dummy_bind [x] = x
+            dummy_bind (x:xs) = Let [(Var "x", x)] (dummy_bind xs)
+
 -- Application
 -- only handles the one case 
 javac (Seq (f:args)) = concat [ "((ProcValue",
@@ -111,7 +123,6 @@ let_lambda (Let bindings body) =
                          Seq $ (Lambda (map fst bindings) body)
                                       : map snd bindings
 
-
 letrec1_y (LetRec [(name,f@(Lambda params _))] body)
                = Let [(name,
                         Seq [fixn (length params), Lambda [name] f])]
@@ -129,12 +140,6 @@ Idiomatic haskell solutions surely would simply
 
 -}
 
-dummy_bind [x] = x
--- not sure what the name of the "x" var should really be
-dummy_bind (x:xs) = Let [(Var "x", x)] (dummy_bind xs)
-
-begin_let (Begin exps) = dummy_bind exps
-
 ---
 
 java_compile_program exp = concat ["public class BOut extends RuntimeEnvironment {",
@@ -143,4 +148,6 @@ java_compile_program exp = concat ["public class BOut extends RuntimeEnvironment
  ";",
  "}",
  "}" ]
+
+
 
