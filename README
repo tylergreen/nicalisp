@@ -1,0 +1,23 @@
+Haskell Program that compiles basic scheme into java code. 
+Named after one of my favorite coffees, nica (nicaraguan)
+
+Translated from Matt Might's scheme version
+www.matt.might.net/articles/compiling-to-java/
+
+to run:
+
+load Main, call compile_scm on your scheme string.  A string of java
+code will be returned.
+
+To Do:
+java pretty printer
+mutable variables
+testing framework
+standard library/prelude
+test letrec
+clean up Parser code
+
+
+
+
+
