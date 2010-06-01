@@ -16,9 +16,6 @@ data Exp = StrConst String
          | Seq [Exp] -- List
            deriving Show
 
-data Op = Plus | Minus | Product | Equal | Display deriving Show
-
-
 -- Constants
 javac :: Exp -> String           
 javac (IntConst val) = concat ["new IntValue(" , show val , ")"]
@@ -130,24 +127,13 @@ letrec1_y (LetRec [(name,f@(Lambda params _))] body)
 
 letrec1_y exp@(LetRec (x:xs) _) = exp
 
-
-{-- 
-Questionable Section:
-This section could probably be improved.
-
-I just translated it faithfully from the scheme version.
-Idiomatic haskell solutions surely would simply
-
--}
-
----
-
-java_compile_program exp = concat ["public class BOut extends RuntimeEnvironment {",
- "public static void main (String[] args ) { ",
- javac exp ,
- ";",
- "}",
- "}" ]
+java_compile_program exp
+    = concat ["public class BOut extends RuntimeEnvironment {",
+                "public static void main (String[] args ) { ",
+                    javac exp , ";",
+                              "}",
+                         "}"
+             ]
 
 
 
